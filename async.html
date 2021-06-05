@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Citanje fajla kroz async funkciju</title>
+    <style>
+        #loader {
+        display: inline-block; width: 18px;
+        height: 18px;
+        display: none;
+                    }
+                    #loader:after {
+        content: " ";
+        display: block;
+        width: 18px;
+        height: 18px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 2px solid #241f1f;
+        border-color: #241f1f transparent #241f1f transparent; animation: lds-dual-ring 1.2s linear infinite;
+        }
+        @keyframes lds-dual-ring {
+                        0% {
+                            transform: rotate(0deg);
+        }
+        100% {
+                            transform: rotate(360deg);
+                        }
+        }
+        #my-text-area {
+        display: block; width: 100%; margin-top: 16px;
+        } </style>
+</head>
+<body>
+
+    <button id="get-text-btn">Get Data</button>
+    <div id="loader"></div>
+    <textarea id="my-text-area" rows="30"></textarea>
+
+    <script>
+        let btnGet = document.getElementById("get-text-btn");
+        let loader = document.getElementById("loader");
+        let textArea = document.getElementById("my-text-area");
+
+        class Student{
+            constructor(name, address, phone, course){
+                this.name = name;
+                this.address = address;
+                this.phone = phone;
+                this.course = course;
+            }
+            get info(){
+                return "Name: " + this.name + "Address: " + this.address + "Phone: " + this.phone + "Course: " + this.course            }
+        }
+
+        function sliceIntoChunks(arr, chunkSize) {
+                                    const res = [];
+
+                                    for (let i = 0; i < arr.length; i += chunkSize) {
+                                        const chunk = arr.slice(i, i + chunkSize);
+                                        res.push(chunk);
+                                        }
+
+                                    return res;
+                            }
+
+        btnGet.addEventListener("click", function(){
+
+            getStudents();
+
+        });
+
+        async function getStudents(){
+
+            try{
+                loader.style.display = "inline-block";
+
+                let response = await fetch("https://v-dresevic.github.io/Advanced-JavaScript-Programming/data/students.txt");
+
+                if(response.status !== 200){
+                    throw new Error("Error while reading file.")
+                }
+                let text = await response.text();
+                const arrayStudentsInfo = text.split("\n");
+
+                //  console.log(arrayStudentsInfo);
+
+                const multiDmnsnArrayOfStudents = sliceIntoChunks(arrayStudentsInfo, 4);
+                console.log(multiDmnsnArrayOfStudents);
+                
+                for(let i = 0; i < multiDmnsnArrayOfStudents.length; i++){
+                    //let student = multiDmnsnArrayOfStudents[i];
+                    var studentObj = new Student(multiDmnsnArrayOfStudents[i][0], multiDmnsnArrayOfStudents[i][1], multiDmnsnArrayOfStudents[i][2], multiDmnsnArrayOfStudents[i][3]);
+                     console.log(studentObj.info)
+
+                    var studentText = document.createTextNode(studentObj.info + "\r");
+                    textArea.appendChild(studentText);
+                }
+            } catch (err){
+                textArea.innerHTML = "Fetch problem: " + err.message;
+            } finally {
+                loader.style.display = "none";
+            }
+        }
+
+        
+    
+    </script>
+    
+</body>
+</html>
